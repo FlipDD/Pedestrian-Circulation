@@ -11,7 +11,7 @@ class PEDESTRIANS_API AObstacle : public AActor
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Components")
 		class UStaticMeshComponent* Mesh;
 	
 public:	

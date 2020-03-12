@@ -14,13 +14,12 @@ class APedestriansCharacter : public ACharacter
 public:
 	APedestriansCharacter();
 
-	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
-	TArray<AActor*> Agents;
-	TArray<AActor*> Targets;
-	TArray<AActor*> Walls;
-	TArray<AActor*> Obstacles;
+	TArray<APedestriansCharacter*> Agents;
+	TArray<class ATarget*> Targets;
+	TArray<class AObstacle*> Obstacles;
+	TArray<class AWallu*> Walls;
 
 	float vX, vY;
 	float aX, aY;
@@ -30,12 +29,13 @@ public:
 	float A = 2000;
 	float B = 0.08;
 	float AWall = 2000;
-	float dT = 0.01;
 	float vDes;
 	float tau = 0.5;
 	float hue;
 	double fMag;
 	float nX, nY, dist;
+
+	float fx1, fy1, fx2, fy2, fx3, fy3;
 
 	// Target stuff;
 	UPROPERTY(EditAnywhere)
@@ -46,6 +46,9 @@ public:
 	bool bDrawWallForce = true;
 	bool bDrawAgentAgentForce = false;
 	bool bDrawTotalForce = true;
-	bool bDrawObstacleForce = true;
+	bool bDrawObstacleForce;
+
+protected:
+	virtual void BeginPlay() override;
 };
 
