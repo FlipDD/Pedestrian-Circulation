@@ -25,6 +25,8 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
+	class UPedestrianAnimInstance* PedestrianAnim;
+
 	TArray<APedestrian*> Agents;
 	TArray<class ATarget*> Targets;
 	TArray<class AObstacle*> Obstacles;
@@ -36,7 +38,8 @@ public:
 	float aY = 0;
 	float fX = 0;
 	float fY = 0;
-	double fMag = 0;
+	UPROPERTY(EditAnywhere)
+		double fMag = 0;
 	float nX = 0;
 	float nY = 0;
 	float dist = 0;	
@@ -63,6 +66,20 @@ public:
 	// Target stuff;
 	UPROPERTY(EditAnywhere)
 		int targNr = 0;
+
+	// Extras
+	UPROPERTY(EditAnywhere)
+		float RotLerpSpeed = .2f;
+	UPROPERTY(EditAnywhere)
+		float AnimSpeed = 3000;
+	UPROPERTY(EditAnywhere)
+		float WallForce = 20;
+	UPROPERTY(EditAnywhere)
+		float MaxWallForce = 2000;
+	UPROPERTY(EditAnywhere)
+		float WallForceMultiplier = 30;
+	UPROPERTY(EditAnywhere)
+		float DistToWall = 100;
 
 	// Debug force arrow switches
 	bool bDrawTargetForce = false;

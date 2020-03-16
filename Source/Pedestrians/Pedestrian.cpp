@@ -20,6 +20,7 @@
 #include "Wallu.h"
 
 #include "ArrowSceneComp.h"
+#include "PedestrianAnimInstance.h"
 
 // Macros
 #define print(text) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 1.5, FColor::White,text)
@@ -55,6 +56,9 @@ void APedestrian::BeginPlay()
 	if (!ensureAlways(World))
 		return;
 
+	// Store animation instance
+	PedestrianAnim = Cast<UPedestrianAnimInstance>(Mesh->GetAnimInstance());
+
 	// Get all the agents, targets, walls and obstacles currently in the Level
 	// Declare temporary arrays to fill
 	TArray<AActor*> AAgents;
@@ -76,7 +80,12 @@ void APedestrian::BeginPlay()
 
 	// Cast from actors to the specific type a populate the arrays of that type
 	for (int i = 0; i < AAgents.Num(); i++)
-		Agents.Add(Cast<APedestrian>(AAgents[i]));
+	{
+		// Don't add this actor
+		if (AAgents[i] != this)
+			Agents.Add(Cast<APedestrian>(AAgents[i]));
+	}
+
 	for (int i = 0; i < ATargets.Num(); i++)
 		Targets.Add(Cast<ATarget>(ATargets[i]));
 	for (int i = 0; i < AWalls.Num(); i++)
@@ -127,88 +136,105 @@ void APedestrian::Tick(float DeltaTime)
 	//print(TEXT("fTarg %s"), *GetName());
 
 	// Now deal with the walls ============================================================
-	// First look for a horizontal wall
 	i = 0;
-	// Loop over the walls ArrayList 
 	while (i < Walls.Num())
 	{
 		Wall = Walls[i];
 		FVector WScale = Wall->GetActorScale3D();
 		FVector WLoc = Wall->GetActorLocation();
-		if (MyLoc.Y > (WLoc.Y - WScale.Y / 2) &&
-			MyLoc.Y < (WLoc.Y + WScale.Y / 2))
-		{
-			dist = UKismetMathLibrary::Sqrt((MyLoc.X - WLoc.X) * (MyLoc.X - WLoc.X));
-			//FVector::Dist(MyLoc, WLoc);
 
-			nX = MyLoc.X - WLoc.X;
-			nX = nX / dist;
-			// Calculate the magnitude of the force
-			fMag = AWall * UKismetMathLibrary::Exp((radius - dist) / B);
-			// Add to total force
-			fX += fMag * nX;
-			fy1 = 0;
-			fx1 = fMag * nX;
-			//if (bDrawWallForce) forceArrowWall.draw(x, y, x + fx1, y + fy1, 1, 60);
-		}
-		// First make sure we are "along" the wall somewhere
-		else if (MyLoc.X > (WLoc.X - WScale.X / 2) &&
-			MyLoc.X < (WLoc.X + WScale.X / 2))
+		//dist = UKismetMathLibrary::Sqrt((MyLoc.Y - WLoc.Y) * (MyLoc.Y - WLoc.Y)); //FVector::Dist(MyLoc, WLoc);
+		float distLeftY = MyLoc.Y - (WLoc.Y + WScale.Y * 50);
+		float distRightY = MyLoc.Y + (WLoc.Y + WScale.Y * 50);
+		UE_LOG(LogTemp, Warning, TEXT("distleft: %f || distright: %f"), distLeftY, distRightY);
+		
+		//nX = MyLoc.X - WLoc.X;
+		nY = MyLoc.Y - WLoc.Y;
+		// Normalize vector
+		//nX = nX / dist;
+		nY = nY / dist;
+
+		// Calculate the magnitude of the force
+		float f = (radius - (dist/100)) / B;
+		fMag = AWall * UKismetMathLibrary::Exp(f);
+		fMag = fMag * WallForceMultiplier;
+		if (fMag > MaxWallForce) fMag = MaxWallForce;
+		//UE_LOG(LogTemp, Warning, TEXT("radius: %f, dist: %f, b: %f, f: %f fmag : %f"), radius, dist, B, f, fMag);
+		// Add to total force
+		//fX += fMag * nX;
+		//fx1 = fMag * nX;
+		/*fY += fMag * nY;
+		fy1 = fMag * nY;*/
+		//fy1 = 0;
+		//fx1 = 0;
+		//if (bDrawWallForce) forceArrowWall.draw(x, y, x + fx1, y + fy1, 1, 60);
+		/*if (MyLoc.Y < (WLoc.Y - WScale.Y * 50 - DistToWall) && 
+			MyLoc.Y > (WLoc.Y + WScale.Y * 50 + DistToWall))
 		{
-			// Get distance to wall
-			dist = UKismetMathLibrary::Sqrt((MyLoc.Y - WLoc.Y) * (MyLoc.Y - WLoc.Y));
-			//FVector::Dist(MyLoc, WLoc)
-					
-			// Get vector to wall
-			nY = MyLoc.Y - WLoc.Y;
-			// Normalize vector
-			nY = nY / dist;
-			// Calculate the magnitude of the force
-			fMag = AWall * UKismetMathLibrary::Exp((radius - dist) / B);
-			// Add to total force
-			fY += fMag * nY;
-			fx1 = 0;
-			fy1 = fMag * nY;
-			//if (bDrawWallForce) forceArrowWall.draw(x, y, x + fx1, y + fy1, 1, 60);
-		}
+			UE_LOG(LogTemp, Warning, TEXT("y in"));
+
+			if (MyLoc.X < (WLoc.X - WScale.X * 50 - DistToWall) &&
+				MyLoc.X >(WLoc.X + WScale.X * 50 + DistToWall))
+			{*/
+			//}
+		//// First make sure we are "along" the wall somewhere
+		//else if (MyLoc.X > (WLoc.X - WScale.X * 50) &&
+		//	MyLoc.X < (WLoc.X + WScale.X * 50))
+		//{
+		//	// Get distance to wall
+		//	dist = UKismetMathLibrary::Sqrt((MyLoc.Y - WLoc.Y) * (MyLoc.Y - WLoc.Y));
+		//	//FVector::Dist(MyLoc, WLoc)
+		//			
+		//	// Get vector to wall
+		//	nY = MyLoc.Y - WLoc.Y;
+		//	// Normalize vector
+		//	nY = nY / dist;
+		//	// Calculate the magnitude of the force
+		//	fMag = AWall * UKismetMathLibrary::Exp((radius - dist) / B);
+		//	// Add to total force
+		//	fY += fMag * nY;
+		//	fx1 = 0;
+		//	fy1 = fMag * nY;
+		//	//if (bDrawWallForce) forceArrowWall.draw(x, y, x + fx1, y + fy1, 1, 60);
+		//}
 		i++;
 	}
 
 	//// Now Look for agent-agent interactions =================================================
 	i = 0;
 	// Loop over the agents ArrayList and get each "other" agent in turn
-	while (i < Agents.Num()) {
+	while (i < Agents.Num())
+	{
 		Other = Agents[i];
 		FVector OLoc = Other->GetActorLocation();
 		// Do not calculate force of this agent on itself
-		if (this != Other) {
-			// Now calc the force between this agent and the current other agent 
-			// First get the distance between the agents
-			dist = FVector::Dist(MyLoc, OLoc);//UKismetMathLibrary::Sqrt((MyLoc.X - OLoc.X)*(MyLoc.X - OLoc.X) + (MyLoc.Y - OLoc.Y)*(MyLoc.Y - OLoc.Y));
-			// Get vector between agents   
-			nX = MyLoc.X - OLoc.X;
-			nY = MyLoc.Y - OLoc.Y;
-			// Normalize vector
-			nX = nX / dist;
-			nY = nY / dist;
-			//Sum the agents radii
-			float sumR = radius + Other->radius;
-			// Calculate force components and add to total force
-			double fMag = A * UKismetMathLibrary::Exp((sumR - dist) / B);
-			fX += (float)fMag*nX;
-			fY += (float)fMag*nY;
-			fx2 = (float)fMag*nX;
-			fy2 = (float)fMag*nY;
-			/*if (bDrawAgentAgentForce) forceArrowAgent.draw(x, y, x + fx2, y + fy2, 1, 60);
-			println("fInter " + name + " fX = " + fx2 + " fY = " + fy2);
-			println("dist = " + dist);*/
-		} // if
+		// Now calc the force between this agent and the current other agent 
+		// First get the distance between the agents
+		dist = FVector::Dist(MyLoc, OLoc);//UKismetMathLibrary::Sqrt((MyLoc.X - OLoc.X)*(MyLoc.X - OLoc.X) + (MyLoc.Y - OLoc.Y)*(MyLoc.Y - OLoc.Y));
+		// Get vector between agents   
+		nX = MyLoc.X - OLoc.X;
+		nY = MyLoc.Y - OLoc.Y;
+		// Normalize vector
+		nX = nX / dist;
+		nY = nY / dist;
+		//Sum the agents radii
+		float sumR = radius + Other->radius;
+		// Calculate force components and add to total force
+		double fMag = A * UKismetMathLibrary::Exp((sumR - dist) / B);
+		fX += (float)fMag*nX;
+		fY += (float)fMag*nY;
+		fx2 = (float)fMag*nX;
+		fy2 = (float)fMag*nY;
+		/*if (bDrawAgentAgentForce) forceArrowAgent.draw(x, y, x + fx2, y + fy2, 1, 60);
+		println("fInter " + name + " fX = " + fx2 + " fY = " + fy2);
+		println("dist = " + dist);*/
 		i++;
 	} // while
 
   // Now deal with the obstacles =======================================================
 	i = 0;
-	while (i < Obstacles.Num()) {
+	while (i < Obstacles.Num())
+	{
 		Obstacle = Obstacles[i];
 		FVector ObLoc = Obstacle->GetActorLocation();
 		dist = FVector::Dist(MyLoc, ObLoc);//UKismetMathLibrary::Sqrt((MyLoc.X - ObLoc.X)*(MyLoc.X - ObLoc.X) + (MyLoc.Y - ObLoc.Y)*(MyLoc.Y - ObLoc.Y));
@@ -241,13 +267,14 @@ void APedestrian::Tick(float DeltaTime)
 
 	vX += aX * DeltaTime;
 	vY += aY * DeltaTime;
-	UE_LOG(LogTemp, Warning, TEXT("VX IS %f, VY IS %f"), vX, vY);
 
-	//sSetActorLocation(FVector(MyLoc.X + vX, MyLoc.Y + vY, MyLoc.Z + DeltaTime));
 	AddActorWorldOffset(FVector(vX * 100 * DeltaTime, vY * 100 * DeltaTime, 0));
-	//print(TEXT("X is %f"), MyLoc.X);
-	// MyLoc.X += vX * 100 * DeltaTime;
-	// MyLoc.Y += vY * 100 * DeltaTime;
+	float NewPos = (MyLoc - GetActorLocation()).Size() * DeltaTime;
+	PedestrianAnim->Speed = NewPos * AnimSpeed;
+
+	FRotator NewRot = UKismetMathLibrary::FindLookAtRotation(MyLoc, GetActorLocation());
+	FRotator LerpedNewRot = UKismetMathLibrary::RLerp(GetActorRotation(), NewRot, RotLerpSpeed, true);
+	SetActorRotation(LerpedNewRot);
 
 	//print(TEXT("%s, vX = %f, vY = %f"), *GetName(), vX, vY);
 	// Wrap-around boundary conditions
@@ -256,7 +283,7 @@ void APedestrian::Tick(float DeltaTime)
 	if (y < 0) this.y = heightPhysical;
 	if (y > heightPhysical) this.y = 0;*/
 
-	//// next target
+	// next target
 	DistToTarget = FVector::Dist(MyLoc, TargetLoc);
 	//DistToTarget = UKismetMathLibrary::Sqrt(MyLoc.X - TLoc.X)*(MyLoc.X - TLoc.X) + (MyLoc.Y - TLoc.Y)*(MyLoc.Y - TLoc.Y);
 	if (DistToTarget <= 5 * radius)
