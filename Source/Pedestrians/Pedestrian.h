@@ -39,7 +39,7 @@ public:
 	float fX = 0;
 	float fY = 0;
 	UPROPERTY(EditAnywhere)
-		double fMag = 0;
+		float fMag = 0;
 	float nX = 0;
 	float nY = 0;
 	float dist = 0;	
@@ -47,17 +47,17 @@ public:
 	float fx1, fy1, fx2, fy2, fx3, fy3;
 
 	UPROPERTY(EditAnywhere)
-		float mass = 80;
+		float mass = 200;
 	UPROPERTY(EditAnywhere)
-		float radius = 0.25;
+		float radius = 60;
 	UPROPERTY(EditAnywhere)
 		float A = 2000;
 	UPROPERTY(EditAnywhere)
-		float B = 0.08;
+		float B = 8.89;
 	UPROPERTY(EditAnywhere)
-		float AWall = 2000;
+		float AWall = 7000;
 	UPROPERTY(EditAnywhere)
-		float vDes = 1;
+		float vDes = 2;
 	UPROPERTY(EditAnywhere)
 		float tau = 0.5;
 	UPROPERTY(EditAnywhere)
@@ -69,11 +69,11 @@ public:
 
 	// Extras
 	UPROPERTY(EditAnywhere)
-		float RotLerpSpeed = .2f;
+		float RotLerpSpeed = .05f;
 	UPROPERTY(EditAnywhere)
-		float AnimSpeed = 3000;
+		float AnimSpeed = 50;
 	UPROPERTY(EditAnywhere)
-		float WallForce = 20;
+		float WallForce = 1000;
 	UPROPERTY(EditAnywhere)
 		float MaxWallForce = 2000;
 	UPROPERTY(EditAnywhere)
