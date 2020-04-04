@@ -164,49 +164,27 @@ void APedestrian::Tick(float DeltaTime)
 			// Get the scale and location of the wall we hit
 			FVector WLoc = WallHit->GetActorLocation();
 			FVector WScale = WallHit->GetActorScale3D();
+
 			// Store the location the raycast hit
 			FVector HitLocation = HitInfo.Location;
-
-			// Get Distance from the hit location to the edges of the wall
-			float WLeftSide = WLoc.Y - WScale.Y * 50;
-			float WRightSide = WLoc.Y + WScale.Y * 50;
-			float distToLeft = FVector::Dist(HitLocation, FVector(WLoc.X, WLeftSide, WLoc.Z));
-			float distToRight = FVector::Dist(HitLocation, FVector(WLoc.X, WRightSide, WLoc.Z));
+			FVector Normal = HitInfo.Normal;
 
 			// Get distance to hit location
-			dist = FVector::Dist(HitLocation, MyLoc);
+			dist = FVector::Dist(HitLocation /*+ Normal * 25*/, MyLoc);
 
-			// Choose ether we apply force to the left or right of the wall
-			// Get vector to wall and normalize it
-			if (distToLeft < distToRight)
-				nY = MyLoc.Y - WLeftSide;
-			else
-				nY = MyLoc.Y - WRightSide;
-
-			nY = nY / dist;
-			nX = MyLoc.X - WLoc.X;
-			nX = nX / dist;
+			nY = HitInfo.Normal.Y;
+			nX = HitInfo.Normal.X;
 
 			// Calculate the magnitude of the force
-			fMag = -AWall * UKismetMathLibrary::Exp((radius - dist) / B);
-
-			// Cap values
-			if (nY < -MaxWallForce) nY = -MaxWallForce;
-			if (nY > MaxWallForce) nY = MaxWallForce;
-			if (fMag < -MaxWallForce) fMag = -MaxWallForce;
-			if (fMag > MaxWallForce) fMag = MaxWallForce;
+			fMag = AWall * UKismetMathLibrary::Exp((radius - (dist/3)) / B);
 
 			// Add to total force
 			fY += fMag * nY;
 			fy1 = fMag * nY;
-			fX -= fMag * nX;
+			fX += fMag * nX;
 			fx1 = fMag * nX;
 
 			// Cap values
-			if (fx1 < -MaxWallForce) fx1 = -MaxWallForce;
-			if (fx1 > MaxWallForce) fx1 = MaxWallForce;
-			if (fy1 < -MaxWallForce) fy1 = -MaxWallForce;
-			if (fy1 > MaxWallForce) fy1 = MaxWallForce;
 			if (fX < -MaxWallForce) fX = -MaxWallForce;
 			if (fX > MaxWallForce) fX = MaxWallForce;
 			if (fY < -MaxWallForce) fY = -MaxWallForce;
@@ -285,6 +263,8 @@ void APedestrian::Tick(float DeltaTime)
 	vY += aY * DeltaTime;
 
 	// Move the actor based on the velocity
+	//AddActorLocalOffset
+
 	AddActorWorldOffset(FVector(vX * 100 * DeltaTime, vY * 100 * DeltaTime, 0));
 
 	// Set the speed of the animation based on the velocity
