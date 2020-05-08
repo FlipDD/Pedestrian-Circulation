@@ -76,7 +76,7 @@ void APedestrian::BeginPlay()
 	// Cast from actors to the specific type a populate the arrays of that type
 	for (int i = 0; i < AAgents.Num(); i++)
 	{
-		// Don't add this actor
+		// Don't add this actor (self)
 		if (AAgents[i] != this)
 			Agents.Add(Cast<APedestrian>(AAgents[i]));
 	}
@@ -130,8 +130,10 @@ void APedestrian::Tick(float DeltaTime)
 	// Raycast against the wall
 	// Define the necessary variables for the raycast
 	// HitInfo where we store the location the raycast hit
-	FHitResult HitInfo;
+	// FiW = {Ai * exp[(ri - diw) / Bi] +kg(ri - diw)} niw - kg(ri - diw) * (vi . tiw) * tiw
 
+	// Where we store the results of the raycast hit (the normal
+	FHitResult HitInfo;
 	// The objects to trace
 	TEnumAsByte<EObjectTypeQuery> ObjectToTrace = EObjectTypeQuery::ObjectTypeQuery1;
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectsToTraceAsByte;
@@ -161,10 +163,6 @@ void APedestrian::Tick(float DeltaTime)
 		// If the actor we hit was a wall
 		if (WallHit)
 		{
-			// Get the scale and location of the wall we hit
-			FVector WLoc = WallHit->GetActorLocation();
-			FVector WScale = WallHit->GetActorScale3D();
-
 			// Store the location the raycast hit
 			FVector HitLocation = HitInfo.Location;
 			FVector Normal = HitInfo.Normal;
@@ -172,12 +170,12 @@ void APedestrian::Tick(float DeltaTime)
 			// Get distance to hit location
 			dist = FVector::Dist(HitLocation /*+ Normal * 25*/, MyLoc);
 
+			// The Wall's normal vector
 			nY = HitInfo.Normal.Y;
 			nX = HitInfo.Normal.X;
 
 			// Calculate the magnitude of the force
-			fMag = AWall * UKismetMathLibrary::Exp((radius - (dist/3)) / B);
-
+			fMag = AWall * UKismetMathLibrary::Exp((radius - (dist)) / B);
 			// Add to total force
 			fY += fMag * nY;
 			fy1 = fMag * nY;
