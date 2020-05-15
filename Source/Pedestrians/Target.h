@@ -11,19 +11,11 @@ class PEDESTRIANS_API ATarget : public AActor
 {
 	GENERATED_BODY()
 
+	// The mesh of the target
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 		class UStaticMeshComponent* Mesh;
 	
 public:	
 	// Sets default values for this actor's properties
 	ATarget();
-
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
 };

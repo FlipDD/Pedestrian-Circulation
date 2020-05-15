@@ -35,22 +35,3 @@ void UArrowSceneComp::SetF3Rot(FRotator Rot)
 {
 	F3Mesh->SetWorldRotation(Rot);
 }
-
-// Called when the game starts
-void UArrowSceneComp::BeginPlay()
-{
-	Super::BeginPlay();
-
-	// ...
-	
-}
-
-
-// Called every frame
-void UArrowSceneComp::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
-}
-

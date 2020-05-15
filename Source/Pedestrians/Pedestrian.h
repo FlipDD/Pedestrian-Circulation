@@ -11,82 +11,83 @@ class APedestrian : public AActor
 {
 	GENERATED_BODY()
 
+	// The mesh of the pedestrian
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 		class USkeletalMeshComponent* Mesh;
-
+	// The capsule collider
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 		class UCapsuleComponent* Capsule;
-
-	UPROPERTY(VisibleAnywhere, Category = "Components")
-		class UArrowSceneComp* Arrow;
-
 public:
 	APedestrian();
 
 	virtual void Tick(float DeltaTime) override;
 
+	// Reference to the pedestrian animation instance
 	class UPedestrianAnimInstance* PedestrianAnim;
 
+	// Arrays to store the agents, targets, obstacles and walls
 	TArray<APedestrian*> Agents;
 	TArray<class ATarget*> Targets;
 	TArray<class AObstacle*> Obstacles;
 	TArray<class AWallu*> Walls;
 
+	// Variables
+	UPROPERTY(BlueprintReadOnly)
+	float fMag = 0;
+	UPROPERTY(BlueprintReadOnly)
 	float vX = 0;
+	UPROPERTY(BlueprintReadOnly)
 	float vY = 0;
+	UPROPERTY(BlueprintReadOnly)
 	float aX = 0;
+	UPROPERTY(BlueprintReadOnly)
 	float aY = 0;
+	UPROPERTY(BlueprintReadOnly)
 	float fX = 0;
+	UPROPERTY(BlueprintReadOnly)
 	float fY = 0;
-	UPROPERTY(EditAnywhere)
-		float fMag = 0;
+	UPROPERTY(BlueprintReadOnly)
 	float nX = 0;
+	UPROPERTY(BlueprintReadOnly)
 	float nY = 0;
+	UPROPERTY(BlueprintReadOnly)
 	float dist = 0;	
-
 	float fx1, fy1, fx2, fy2, fx3, fy3;
 
-	UPROPERTY(EditAnywhere)
+	// Constants
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		float mass = 200;
-	UPROPERTY(EditAnywhere)
-		float radius = 60;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		float radius = 25;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		float A = 2000;
-	UPROPERTY(EditAnywhere)
-		float B = 8.89;
-	UPROPERTY(EditAnywhere)
-		float AWall = 7000;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		float B = 8.0;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		float vDes = 2;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		float tau = 0.5;
-	UPROPERTY(EditAnywhere)
-		float hue = 90;
 
-	// Target stuff;
-	UPROPERTY(EditAnywhere)
+	// Max force the wall can apply to the pedestrian
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		float MaxWallForce = 2000;
+
+	// Current target;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		int targNr = 0;
 
-	// Extras
-	UPROPERTY(EditAnywhere)
+	// Animation constants
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		float RotLerpSpeed = .05f;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		float AnimSpeed = 50;
-	UPROPERTY(EditAnywhere)
-		float WallForce = 1000;
-	UPROPERTY(EditAnywhere)
-		float MaxWallForce = 2000;
-	UPROPERTY(EditAnywhere)
-		float WallForceMultiplier = 30;
-	UPROPERTY(EditAnywhere)
-		float DistToWall = 100;
 
 	// Debug force arrow switches
-	bool bDrawTargetForce = false;
-	bool bDrawWallForce = true;
-	bool bDrawAgentAgentForce = false;
-	bool bDrawTotalForce = true;
-	bool bDrawObstacleForce;
+	//bool bDrawTargetForce = false;
+	//bool bDrawWallForce = true;
+	//bool bDrawAgentAgentForce = false;
+	//bool bDrawTotalForce = true;
+	//bool bDrawObstacleForce;
 
 protected:
 	virtual void BeginPlay() override;

@@ -11,23 +11,8 @@ AObstacle::AObstacle()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	// Create the mesh, attach it and set scale depending on the radius
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>("Mesh");
 	Mesh->SetupAttachment(RootComponent);
 	Mesh->SetWorldScale3D(FVector(Radius, Radius, Radius));
-
 }
-
-// Called when the game starts or when spawned
-void AObstacle::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
-
-// Called every frame
-void AObstacle::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-

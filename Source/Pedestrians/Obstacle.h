@@ -11,6 +11,7 @@ class PEDESTRIANS_API AObstacle : public AActor
 {
 	GENERATED_BODY()
 
+	// The mesh of the obstacle
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 		class UStaticMeshComponent* Mesh;
 	
@@ -18,15 +19,7 @@ public:
 	// Sets default values for this actor's properties
 	AObstacle();
 
+	// The radius of the obstacle
 	UPROPERTY(EditAnywhere)
-		float Radius;
-
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
+		float Radius = 100;
 };

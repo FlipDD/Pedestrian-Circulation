@@ -28,21 +28,22 @@ APedestrian::APedestrian()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	// Create and attach the capsule collider
 	Capsule = CreateDefaultSubobject<UCapsuleComponent>("Capsule");
 	Capsule->SetupAttachment(RootComponent);
 	Capsule->InitCapsuleSize(42.f, 96.f);
-
+	// Create and attach the mesh
 	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>("Mesh");
 	Mesh->SetupAttachment(Capsule);
-
-	Arrow = CreateDefaultSubobject<UArrowSceneComp>("Arrow");
-	Arrow->SetupAttachment(Capsule);
 }
 
 // This will only run once at the start of the level (when pressing Play)
 void APedestrian::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// Set the tick interval (60fps)
+	SetActorTickInterval(0.0166f);
 
 	auto World = GetWorld();
 	// Don't go any further if we can't find the world
@@ -58,7 +59,7 @@ void APedestrian::BeginPlay()
 	// Declare temporary arrays to fill
 	TArray<AActor*> AAgents;
 	TArray<AActor*> ATargets;
-	TArray<AActor*> AWalls;
+	TArray<AActor*> As;
 	TArray<AActor*> AObstacles;
 
 	// Declare which classes to look for
@@ -70,7 +71,7 @@ void APedestrian::BeginPlay()
 	// Get all actor of a specific class and add it to the declared arrays
 	UGameplayStatics::GetAllActorsOfClass(World, PedestrianClass, AAgents);
 	UGameplayStatics::GetAllActorsOfClass(World, TargetClass, ATargets);
-	UGameplayStatics::GetAllActorsOfClass(World, WallClass, AWalls);
+	UGameplayStatics::GetAllActorsOfClass(World, WallClass, As);
 	UGameplayStatics::GetAllActorsOfClass(World, ObstacleClass, AObstacles);
 
 	// Cast from actors to the specific type a populate the arrays of that type
@@ -82,8 +83,8 @@ void APedestrian::BeginPlay()
 	}
 	for (int i = 0; i < ATargets.Num(); i++)
 		Targets.Add(Cast<ATarget>(ATargets[i]));
-	for (int i = 0; i < AWalls.Num(); i++)
-		Walls.Add(Cast<AWallu>(AWalls[i]));
+	for (int i = 0; i < As.Num(); i++)
+		Walls.Add(Cast<AWallu>(As[i]));
 	for (int i = 0; i < AObstacles.Num(); i++)
 		Obstacles.Add(Cast<AObstacle>(AObstacles[i]));
 }
@@ -93,13 +94,13 @@ void APedestrian::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// Set initial variables to use
+	// Set initial variables to use, index, "other pedestrian", obstacle and distance to target
 	int i;
 	APedestrian* Other;
 	AObstacle* Obstacle;
 	float DistToTarget;
 
-	// Set forces to 0
+	// Set initial forces to 0
 	fX = 0;
 	fY = 0;
 
@@ -113,7 +114,7 @@ void APedestrian::Tick(float DeltaTime)
 	nY = TargetLoc.Y - MyLoc.Y;
 
 	// Get distance to the target  
-	DistToTarget = FVector::Dist(TargetLoc, MyLoc);//UKismetMathLibrary::Sqrt(nX * nX + nY * nY);
+	DistToTarget = FVector::Dist(TargetLoc, MyLoc);
 
 	// Normalize vector	
 	nX = nX / DistToTarget;
@@ -127,12 +128,10 @@ void APedestrian::Tick(float DeltaTime)
 	fy3 = (vDes*nY - vY)*mass / tau;
 
 	// Now deal with the walls ============================================================
-	// Raycast against the wall
-	// Define the necessary variables for the raycast
-	// HitInfo where we store the location the raycast hit
-	// FiW = {Ai * exp[(ri - diw) / Bi] +kg(ri - diw)} niw - kg(ri - diw) * (vi . tiw) * tiw
+	// FiW = {Ai * exp[(ri - diw) / Bi] + kg(ri - diw)} niw - kg(ri - diw) * (vi . tiw) * tiw
 
-	// Where we store the results of the raycast hit (the normal
+	// Define the necessary variables for the raycast
+	// Where we store the results of the raycast hit (the normal)
 	FHitResult HitInfo;
 	// The objects to trace
 	TEnumAsByte<EObjectTypeQuery> ObjectToTrace = EObjectTypeQuery::ObjectTypeQuery1;
@@ -142,18 +141,18 @@ void APedestrian::Tick(float DeltaTime)
 	TArray<AActor*> ActorsToIgnore;
 	ActorsToIgnore.Add(this);
 
-	// The line trace function
+	// The line trace function (raycast against the wall)
 	UKismetSystemLibrary::LineTraceSingle
 	(
-		GetWorld(),
-		GetActorLocation(),
-		GetActorLocation() + GetActorForwardVector() * 1000,
-		ETraceTypeQuery::TraceTypeQuery1,
-		false,
-		ActorsToIgnore,
-		EDrawDebugTrace::None,
-		HitInfo,
-		true
+		GetWorld(), // Context
+		GetActorLocation(), // Start Location
+		GetActorLocation() + GetActorForwardVector() * 1000, // End Location
+		ETraceTypeQuery::TraceTypeQuery1, // Trace type
+		false, // Should trace be complex
+		ActorsToIgnore, // Array of actors to ignore
+		EDrawDebugTrace::None, // If should should draw a debug trace
+		HitInfo, // The variable we store the trace info in
+		true // Should we ignore ourselves
 	);
 	
 	// If we hit an actor
@@ -175,7 +174,8 @@ void APedestrian::Tick(float DeltaTime)
 			nX = HitInfo.Normal.X;
 
 			// Calculate the magnitude of the force
-			fMag = AWall * UKismetMathLibrary::Exp((radius - (dist)) / B);
+			fMag = A * UKismetMathLibrary::Exp((radius - (dist)) / B);
+			fMag = A * UKismetMathLibrary::Exp((radius - (dist)) / B);
 			// Add to total force
 			fY += fMag * nY;
 			fy1 = fMag * nY;
@@ -195,6 +195,7 @@ void APedestrian::Tick(float DeltaTime)
 	// Loop over the agents ArrayList and get each "other" agent in turn
 	while (i < Agents.Num())
 	{
+		// Get the agent in the specified index and its location
 		Other = Agents[i];
 		FVector OLoc = Other->GetActorLocation();
 
@@ -226,9 +227,12 @@ void APedestrian::Tick(float DeltaTime)
 	i = 0;
 	while (i < Obstacles.Num())
 	{
+		// Get the obstacle in the specified index and its location
 		Obstacle = Obstacles[i];
 		FVector ObLoc = Obstacle->GetActorLocation();
-		dist = FVector::Dist(MyLoc, ObLoc);//UKismetMathLibrary::Sqrt((MyLoc.X - ObLoc.X)*(MyLoc.X - ObLoc.X) + (MyLoc.Y - ObLoc.Y)*(MyLoc.Y - ObLoc.Y));
+
+		// Calculate distance between this pedestrian and the obstacle
+		dist = FVector::Dist(MyLoc, ObLoc);
 
 		// Get vector between  
 		nX = MyLoc.X - ObLoc.X;
@@ -238,7 +242,7 @@ void APedestrian::Tick(float DeltaTime)
 		nX = nX / dist;
 		nY = nY / dist;
 
-		//Sum the a radius
+		//Sum the radius
 		float sumR = radius + Obstacle->Radius;
 
 		// Calculate force components
@@ -261,8 +265,6 @@ void APedestrian::Tick(float DeltaTime)
 	vY += aY * DeltaTime;
 
 	// Move the actor based on the velocity
-	//AddActorLocalOffset
-
 	AddActorWorldOffset(FVector(vX * 100 * DeltaTime, vY * 100 * DeltaTime, 0));
 
 	// Set the speed of the animation based on the velocity

@@ -26,14 +26,5 @@ public:
 	void SetF1Rot(FRotator Rot);
 	void SetF2Rot(FRotator Rot);
 	void SetF3Rot(FRotator Rot);
-
-protected:
-	// Called when the game starts
-	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
 		
 };
